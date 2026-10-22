@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RETRO ARCADE - Web Oyun Portalı</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Rajdhani', sans-serif; background-color: #0b0f19; color: #f3f4f6; }
+    .pixel-font { font-family: 'Press Start 2P', cursive; }
+    .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .neon-border { box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); }
+    .neon-text-cyan { text-shadow: 0 0 8px rgba(6, 182, 212, 0.6); }
+    .neon-text-pink { text-shadow: 0 0 8px rgba(236, 72, 153, 0.6); }
+    canvas { background-color: #05070f; image-rendering: pixelated; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 glass border-b border-slate-800/80 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('gallery')">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-indigo-600 to-pink-500 flex items-center justify-center text-xl shadow-lg shadow-indigo-500/30">
+          <i class="fas fa-gamepad"></i>
+        </div>
+        <span class="pixel-font text-lg text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-500">
+          RETRO ARCADE
+        </span>
+      </div>
+      
+      <div class="flex items-center gap-6">
+        <button onclick="toggleAudio()" id="sound-btn" class="p-2.5 rounded-xl glass hover:bg-slate-800 text-slate-300 transition" title="Ses Aç/Kapat">
+          <i class="fas fa-volume-up"></i>
+        </button>
+        <div class="hidden sm:flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-slate-400">Toplam Skor:</span>
+          <span id="total-score" class="font-bold text-amber-400">0</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-6 py-8 w-full flex-grow">
+    
+    <!-- GALLERY VIEW -->
+    <section id="gallery-view" class="space-y-8">
+      <div class="text-center max-w-2xl mx-auto space-y-3">
+        <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white">
+          Tarayıcıda Oyna, <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">Skor Yap!</span>
+        </h1>
+        <p class="text-slate-400">
+          Kurulum gerektirmeyen klasik ve eğlenceli web oyunları. Oyununu seç ve hemen oynamaya başla!
+        </p>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-between items-center max-w-3xl mx-auto">
+        <div class="relative w-full sm:w-96">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+          <input type="text" id="search-input" onkeyup="filterGames()" placeholder="Oyun ara..." class="w-full pl-11 pr-4 py-2.5 rounded-xl glass text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition">
+        </div>
+        <div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+          <button onclick="setCategory('all')" class="cat-btn px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 text-white transition">Tümü</button>
+          <button onclick="setCategory('arcade')" class="cat-btn px-4 py-2 rounded-xl text-sm font-semibold glass text-slate-400 hover:text-white transition">Arcade</button>
+          <button onclick="setCategory('puzzle')" class="cat-btn px-4 py-2 rounded-xl text-sm font-semibold glass text-slate-400 hover:text-white transition">Bulmaca</button>
+        </div>
+      </div>
+
+      <!-- Games Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="games-grid">
+        
+        <!-- Snake -->
+        <div class="game-card glass rounded-2xl overflow-hidden hover:border-cyan-500/50 transition group cursor-pointer flex flex-col justify-between" data-category="arcade" data-title="snake yılan">
+          <div class="p-6 space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl group-hover:scale-110 transition">
+              <i class="fas fa-staff-snake"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white group-hover:text-cyan-400 transition">Klasik Yılan</h3>
+              <p class="text-slate-400 text-sm mt-1">Yemi ye, büyümeye çalış ve duvarlara çarpmadan yüksek skor yap!</p>
+            </div>
+          </div>
+          <div class="px-6 py-4 bg-slate-900/50 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-800 text-slate-300">Arcade</span>
+            <button onclick="launchGame('snake')" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition flex items-center gap-2">
+              <i class="fas fa-play text-xs"></i> Oyna
+            </button>
+          </div>
+        </div>
+
+        <!-- Tetris -->
+        <div class="game-card glass rounded-2xl overflow-hidden hover:border-pink-500/50 transition group cursor-pointer flex flex-col justify-between" data-category="puzzle" data-title="tetris blok">
+          <div class="p-6 space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 text-2xl group-hover:scale-110 transition">
+              <i class="fas fa-cubes"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white group-hover:text-pink-400 transition">Tetris</h3>
+              <p class="text-slate-400 text-sm mt-1">Düşen blokları doğru yerleştir, sıraları patlat ve alanı temiz tut.</p>
+            </div>
+          </div>
+          <div class="px-6 py-4 bg-slate-900/50 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-800 text-slate-300">Bulmaca</span>
+            <button onclick="launchGame('tetris')" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition flex items-center gap-2">
+              <i class="fas fa-play text-xs"></i> Oyna
+            </button>
+          </div>
+        </div>
+
+        <!-- Pong -->
+        <div class="game-card glass rounded-2xl overflow-hidden hover:border-indigo-500/50 transition group cursor-pointer flex flex-col justify-between" data-category="arcade" data-title="pong tenis masatenisi">
+          <div class="p-6 space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-2xl group-hover:scale-110 transition">
+              <i class="fas fa-table-tennis-paddle-ball"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition">Retro Pong</h3>
+              <p class="text-slate-400 text-sm mt-1">Yapay zekaya karşı raketi kontrol et, topu kaçırma!</p>
+            </div>
+          </div>
+          <div class="px-6 py-4 bg-slate-900/50 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-800 text-slate-300">Arcade</span>
+            <button onclick="launchGame('pong')" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition flex items-center gap-2">
+              <i class="fas fa-play text-xs"></i> Oyna
+            </button>
+          </div>
+        </div>
+
+        <!-- Memory Cards -->
+        <div class="game-card glass rounded-2xl overflow-hidden hover:border-amber-500/50 transition group cursor-pointer flex flex-col justify-between" data-category="puzzle" data-title="haıza kart memory eşleştirme">
+          <div class="p-6 space-y-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl group-hover:scale-110 transition">
+              <i class="fas fa-brain"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Hafıza Eşleştirme</h3>
+              <p class="text-slate-400 text-sm mt-1">Kartları çevir, eşleşen ikilileri bul ve hafızanı test et.</p>
+            </div>
+          </div>
+          <div class="px-6 py-4 bg-slate-900/50 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-800 text-slate-300">Bulmaca</span>
+            <button onclick="launchGame('memory')" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition flex items-center gap-2">
+              <i class="fas fa-play text-xs"></i> Oyna
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ARENA / PLAY VIEW -->
+    <section id="arena-view" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <button onclick="switchView('gallery')" class="px-4 py-2 rounded-xl glass hover:bg-slate-800 text-slate-300 text-sm font-semibold transition flex items-center gap-2">
+          <i class="fas fa-arrow-left"></i> Oyun Kataloğuna Dön
+        </button>
+        <h2 id="active-game-title" class="pixel-font text-xl text-indigo-400">OYUN</h2>
+        <div class="flex items-center gap-3">
+          <span class="text-slate-400 text-sm">Skor: <strong id="game-score" class="text-white text-base">0</strong></span>
+        </div>
+      </div>
+
+      <!-- Game Stage -->
+      <div class="glass rounded-3xl p-6 flex flex-col items-center justify-center min-h-[480px] relative overflow-hidden" id="stage-container">
+        <!-- Canvas for Snake, Tetris, Pong -->
+        <canvas id="game-canvas" width="400" height="400" class="rounded-xl border border-slate-800 shadow-2xl hidden"></canvas>
+        
+        <!-- HTML Container for Memory Cards -->
+        <div id="memory-board" class="grid grid-cols-4 gap-3 max-w-md w-full hidden"></div>
+      </div>
+
+      <!-- Controls & Info -->
+      <div class="glass rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-400">
+        <div id="controls-hint" class="flex items-center gap-2">
+          <i class="fas fa-keyboard text-indigo-400"></i> Kontroller: Yön Tuşları / WASD
+        </div>
+        <button onclick="restartActiveGame()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition font-semibold flex items-center gap-2">
+          <i class="fas fa-redo"></i> Yeniden Başlat
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 py-6 text-center text-slate-500 text-sm glass">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <p>&copy; 2026 RETRO ARCADE • GitHub Pages ile Barındırılmaktadır.</p>
+      <div class="flex gap-4">
+        <a href="https://github.com" target="_blank" class="hover:text-indigo-400 transition"><i class="fab fa-github text-lg"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Audio Context & Sound FX
+    let audioEnabled = true;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playBeep(freq = 440, type = 'sine', duration = 0.1) {
+      if(!audioEnabled) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      document.getElementById('sound-btn').innerHTML = audioEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute text-rose-500"></i>';
+    }
+
+    // View Switching & State
+    let currentGame = null;
+    let gameLoop = null;
+    let totalScore = parseInt(localStorage.getItem('arcade_total_score') || '0');
+    document.getElementById('total-score').innerText = totalScore;
+
+    function addScore(pts) {
+      totalScore += pts;
+      localStorage.setItem('arcade_total_score', totalScore);
+      document.getElementById('total-score').innerText = totalScore;
+      document.getElementById('game-score').innerText = parseInt(document.getElementById('game-score').innerText) + pts;
+    }
+
+    function switchView(view) {
+      if(gameLoop) clearInterval(gameLoop);
+      document.getElementById('gallery-view').classList.toggle('hidden', view !== 'gallery');
+      document.getElementById('arena-view').classList.toggle('hidden', view !== 'arena');
+    }
+
+    function filterGames() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      document.querySelectorAll('.game-card').forEach(card => {
+        const title = card.getAttribute('data-title').toLowerCase();
+        card.style.display = title.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function setCategory(cat) {
+      document.querySelectorAll('.cat-btn').forEach(b => {
+        b.className = 'cat-btn px-4 py-2 rounded-xl text-sm font-semibold glass text-slate-400 hover:text-white transition';
+      });
+      event.target.className = 'cat-btn px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 text-white transition';
+      
+      document.querySelectorAll('.game-card').forEach(card => {
+        card.style.display = (cat === 'all' || card.getAttribute('data-category') === cat) ? 'flex' : 'none';
+      });
+    }
+
+    function launchGame(name) {
+      currentGame = name;
+      switchView('arena');
+      document.getElementById('game-score').innerText = '0';
+      document.getElementById('game-canvas').classList.add('hidden');
+      document.getElementById('memory-board').classList.add('hidden');
+      
+      if(name === 'snake') initSnake();
+      if(name === 'tetris') initTetris();
+      if(name === 'pong') initPong();
+      if(name === 'memory') initMemory();
+    }
+
+    function restartActiveGame() {
+      if(currentGame) launchGame(currentGame);
+    }
+
+    // --- SNAKE GAME ---
+    function initSnake() {
+      document.getElementById('active-game-title').innerText = 'SNAKE';
+      document.getElementById('controls-hint').innerHTML = '<i class="fas fa-keyboard text-indigo-400"></i> Kontroller: Ok Tuşları veya WASD';
+      const canvas = document.getElementById('game-canvas');
+      canvas.classList.remove('hidden');
+      const ctx = canvas.getContext('2d');
+      
+      const grid = 20;
+      let snake = [{x: 160, y: 160}, {x: 140, y: 160}, {x: 120, y: 160}];
+      let dx = grid, dy = 0;
+      let food = {x: 300, y: 300};
+
+      function move() {
+        const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+        if(head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || snake.some(s => s.x === head.x && s.y === head.y)) {
+          playBeep(150, 'sawtooth', 0.3);
+          alert('Oyun Bitti!');
+          launchGame('snake');
+          return;
+        }
+        snake.unshift(head);
+        if(head.x === food.x && head.y === food.y) {
+          addScore(10);
+          playBeep(600, 'square', 0.1);
+          food = {
+            x: Math.floor(Math.random() * (canvas.width / grid)) * grid,
+            y: Math.floor(Math.random() * (canvas.height / grid)) * grid
+          };
+        } else {
+          snake.pop();
+        }
+      }
+
+      function draw() {
+        ctx.fillStyle = '#05070f';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Food
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(food.x, food.y, grid - 2, grid - 2);
+
+        // Snake
+        snake.forEach((part, i) => {
+          ctx.fillStyle = i === 0 ? '#10b981' : '#34d399';
+          ctx.fillRect(part.x, part.y, grid - 2, grid - 2);
+        });
+      }
+
+      const keyHandler = (e) => {
+        if(['ArrowUp','w','W'].includes(e.key) && dy === 0) { dx = 0; dy = -grid; }
+        if(['ArrowDown','s','S'].includes(e.key) && dy === 0) { dx = 0; dy = grid; }
+        if(['ArrowLeft','a','A'].includes(e.key) && dx === 0) { dx = -grid; dy = 0; }
+        if(['ArrowRight','d','D'].includes(e.key) && dx === 0) { dx = grid; dy = 0; }
+      };
+      window.onkeydown = keyHandler;
+
+      if(gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => { move(); draw(); }, 100);
+    }
+
+    // --- TETRIS GAME ---
+    function initTetris() {
+      document.getElementById('active-game-title').innerText = 'TETRIS';
+      document.getElementById('controls-hint').innerHTML = '<i class="fas fa-keyboard text-indigo-400"></i> Sol/Sağ: Hareket, Yukarı: Döndür, Aşağı: Hızlı Düşüş';
+      const canvas = document.getElementById('game-canvas');
+      canvas.classList.remove('hidden');
+      const ctx = canvas.getContext('2d');
+      
+      const cols = 10, rows = 20, blockSize = 20;
+      let board = Array(rows).fill().map(() => Array(cols).fill(0));
+      const pieces = [
+        [[1,1,1,1]],
+        [[1,1],[1,1]],
+        [[0,1,0],[1,1,1]],
+        [[1,0,0],[1,1,1]],
+        [[0,0,1],[1,1,1]]
+      ];
+      let current = { shape: pieces[Math.floor(Math.random()*pieces.length)], x: 3, y: 0 };
+
+      function collide(offX, offY, shape = current.shape) {
+        for(let r=0; r<shape.length; r++) {
+          for(let c=0; c<shape[r].length; c++) {
+            if(shape[r][c]) {
+              let newX = current.x + c + offX;
+              let newY = current.y + r + offY;
+              if(newX < 0 || newX >= cols || newY >= rows || (newY >= 0 && board[newY][newX])) return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      function merge() {
+        current.shape.forEach((r, ry) => {
+          r.forEach((v, rx) => {
+            if(v) board[current.y + ry][current.x + rx] = 1;
+          });
+        });
+        // Check lines
+        for(let r=rows-1; r>=0; r--) {
+          if(board[r].every(v => v === 1)) {
+            board.splice(r, 1);
+            board.unshift(Array(cols).fill(0));
+            addScore(50);
+            playBeep(800, 'triangle', 0.2);
+            r++;
+          }
+        }
+        current = { shape: pieces[Math.floor(Math.random()*pieces.length)], x: 3, y: 0 };
+        if(collide(0,0)) {
+          alert('Oyun Bitti!');
+          launchGame('tetris');
+        }
+      }
+
+      function update() {
+        if(!collide(0, 1)) {
+          current.y++;
+        } else {
+          merge();
+        }
+      }
+
+      function draw() {
+        ctx.fillStyle = '#05070f';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw Board
+        board.forEach((r, ry) => {
+          r.forEach((v, rx) => {
+            if(v) {
+              ctx.fillStyle = '#ec4899';
+              ctx.fillRect(rx * blockSize, ry * blockSize, blockSize - 1, blockSize - 1);
+            }
+          });
+        });
+
+        // Draw Current
+        current.shape.forEach((r, ry) => {
+          r.forEach((v, rx) => {
+            if(v) {
+              ctx.fillStyle = '#06b6d4';
+              ctx.fillRect((current.x + rx) * blockSize, (current.y + ry) * blockSize, blockSize - 1, blockSize - 1);
+            }
+          });
+        });
+      }
+
+      window.onkeydown = (e) => {
+        if(e.key === 'ArrowLeft' && !collide(-1, 0)) current.x--;
+        if(e.key === 'ArrowRight' && !collide(1, 0)) current.x++;
+        if(e.key === 'ArrowDown') update();
+        if(e.key === 'ArrowUp') {
+          const rotated = current.shape[0].map((_, i) => current.shape.map(row => row[i]).reverse());
+          if(!collide(0, 0, rotated)) current.shape = rotated;
+        }
+      };
+
+      if(gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => { update(); draw(); }, 400);
+    }
+
+    // --- PONG GAME ---
+    function initPong() {
+      document.getElementById('active-game-title').innerText = 'PONG';
+      document.getElementById('controls-hint').innerHTML = '<i class="fas fa-keyboard text-indigo-400"></i> Kontroller: Sol Raketi Hareket Ettirmek İçin W/S veya Yön Tuşları';
+      const canvas = document.getElementById('game-canvas');
+      canvas.classList.remove('hidden');
+      const ctx = canvas.getContext('2d');
+
+      let paddleH = 60, paddleW = 10;
+      let playerY = 170, aiY = 170;
+      let ball = { x: 200, y: 200, dx: 3, dy: 3 };
+
+      window.onkeydown = (e) => {
+        if(['ArrowUp','w','W'].includes(e.key)) playerY = Math.max(0, playerY - 20);
+        if(['ArrowDown','s','S'].includes(e.key)) playerY = Math.min(canvas.height - paddleH, playerY + 20);
+      };
+
+      function update() {
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+
+        // Bounce top/bottom
+        if(ball.y <= 0 || ball.y >= canvas.height) ball.dy *= -1;
+
+        // AI Move
+        if(ball.y > aiY + paddleH / 2) aiY += 2;
+        else aiY -= 2;
+
+        // Bounce Paddles
+        if(ball.x <= paddleW && ball.y >= playerY && ball.y <= playerY + paddleH) {
+          ball.dx *= -1;
+          addScore(5);
+          playBeep(500, 'sine', 0.05);
+        }
+        if(ball.x >= canvas.width - paddleW && ball.y >= aiY && ball.y <= aiY + paddleH) {
+          ball.dx *= -1;
+        }
+
+        // Reset Ball
+        if(ball.x < 0 || ball.x > canvas.width) {
+          ball = { x: 200, y: 200, dx: (Math.random() > 0.5 ? 3 : -3), dy: 3 };
+        }
+      }
+
+      function draw() {
+        ctx.fillStyle = '#05070f';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#6366f1';
+        ctx.fillRect(0, playerY, paddleW, paddleH);
+        ctx.fillRect(canvas.width - paddleW, aiY, paddleW, paddleH);
+
+        ctx.fillStyle = '#f43f5e';
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if(gameLoop) clearInterval(gameLoop);
+      gameLoop = setInterval(() => { update(); draw(); }, 16);
+    }
+
+    // --- MEMORY GAME ---
+    function initMemory() {
+      document.getElementById('active-game-title').innerText = 'HAFIZA EŞLEŞTİRME';
+      document.getElementById('controls-hint').innerHTML = '<i class="fas fa-mouse text-indigo-400"></i> Kontroller: Kartlara Tıklayarak İkilileri Bul';
+      const board = document.getElementById('memory-board');
+      board.classList.remove('hidden');
+      board.innerHTML = '';
+
+      const icons = ['fa-ghost', 'fa-gamepad', 'fa-dragon', 'fa-rocket', 'fa-bolt', 'fa-crown', 'fa-gem', 'fa-fire'];
+      let cards = [...icons, ...icons].sort(() => Math.random() - 0.5);
+      let flipped = [];
+      let matchedCount = 0;
+
+      cards.forEach((icon, i) => {
+        const card = document.createElement('div');
+        card.className = 'h-24 glass rounded-xl flex items-center justify-center text-2xl text-slate-500 cursor-pointer hover:border-indigo-500 transition select-none';
+        card.dataset.icon = icon;
+        card.dataset.index = i;
+        card.innerHTML = '<i class="fas fa-question"></i>';
+
+        card.onclick = () => {
+          if(flipped.length < 2 && !card.classList.contains('matched') && !flipped.includes(card)) {
+            card.innerHTML = `<i class="fas ${icon} text-indigo-400"></i>`;
+            card.classList.add('border-indigo-500');
+            flipped.push(card);
+
+            if(flipped.length === 2) {
+              if(flipped[0].dataset.icon === flipped[1].dataset.icon) {
+                flipped.forEach(c => c.classList.add('matched', 'bg-indigo-950/40'));
+                addScore(20);
+                playBeep(700, 'sine', 0.1);
+                matchedCount += 2;
+                flipped = [];
+                if(matchedCount === cards.length) {
+                  setTimeout(() => alert('Tebrikler! Tüm kartları buldun.'), 300);
+                }
+              } else {
+                setTimeout(() => {
+                  flipped.forEach(c => {
+                    c.innerHTML = '<i class="fas fa-question"></i>';
+                    c.classList.remove('border-indigo-500');
+                  });
+                  flipped = [];
+                }, 800);
+              }
+            }
+          }
+        };
+        board.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
